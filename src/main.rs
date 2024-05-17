@@ -8,7 +8,15 @@ use std::time::Instant;
 use std::{env, usize};
 
 fn main() {
-
+    let file = env::args()
+        .nth(1)
+        .expect("Please enter a existing file path");
+    let id = env::args()
+        .nth(2)
+        .expect("Please enter a existing file path");
+    let option = env::args()
+        .nth(3)
+        .expect("Please enter a existing file path");
 }
 
 fn read_single_fasta<P>(filename: P) -> HashMap<String, String>
