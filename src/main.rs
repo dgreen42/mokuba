@@ -32,15 +32,21 @@ fn main() {
     }
     if option == opt_id2 {
         let fasta_read = read_single_fasta_deco(file.clone());
-        get_info(fasta_read, id.clone());
+        let info = get_info(fasta_read, id.clone());
+        write_id.push_str(&info.0);
+        write_seq.push_str(&info.1);
     }
     if option == opt_id3 {
         let fasta_read = read_multiple_fasta(file.clone());
-        get_info(fasta_read, id.clone());
+        let info = get_info(fasta_read, id.clone());
+        write_id.push_str(&info.0);
+        write_seq.push_str(&info.1);
     }
     if option == opt_id4 {
         let fasta_read = read_multiple_fasta_deco(file.clone());
-        get_info(fasta_read, id.clone());
+        let info = get_info(fasta_read, id.clone());
+        write_id.push_str(&info.0);
+        write_seq.push_str(&info.1);
     }
 
     let mut write_file = String::new();
@@ -48,19 +54,20 @@ fn main() {
     stdin()
         .read_line(&mut write_file)
         .expect("Could not read entry");
-    if write_file.to_uppercase() == String::from("Y") {
+    let write_file = write_file.trim();
+    if write_file.to_uppercase() == "Y" {
         let mut file_name = String::new();
         println!("\nEnter a name for the file\n");
         stdin()
             .read_line(&mut file_name)
             .expect("Could not read entry");
+        let file_name = file_name.trim();
         write_seq_file(file_name, write_id, write_seq);
     }
-    println!("{} and {}", write_file, String::from("Y"));
     println!("\nDone\n");
 }
 
-fn write_seq_file(name: String, id: String, seq: String) {
+fn write_seq_file(name: &str, id: String, seq: String) {
     let mut file_name = String::from(name);
     file_name.push_str(".fasta");
     if Path::new(&file_name).exists() {
@@ -72,8 +79,18 @@ fn write_seq_file(name: String, id: String, seq: String) {
         File::create(&file_name).expect("Could not create file");
         let mut file_write = File::options().append(true).open(&file_name).unwrap();
         writeln!(&mut file_write, "{}", id).expect("Could not write ID");
-        for line in seq.lines() {
-            writeln!(&mut file_write, "{}", line).expect("Could not write sequence");
+        let mut counter = 0;
+        let seq_chars = seq.chars();
+        let mut seq_string = String::new();
+        for ch in seq_chars {
+            if counter < 60 {
+                counter += 1;
+                seq_string.push(ch);
+            } else {
+                writeln!(&mut file_write, "{}", seq_string).expect("Could not write sequence");
+                counter = 0;
+                seq_string.clear();
+            }
         }
     }
 }
