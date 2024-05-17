@@ -7,6 +7,10 @@ use std::path::{Path, PathBuf};
 use std::time::Instant;
 use std::{env, usize};
 
+main() {
+
+}
+
 fn read_single_fasta<P>(filename: P) -> HashMap<String, String>
 where
     P: AsRef<Path>,
