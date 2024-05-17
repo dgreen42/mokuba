@@ -1,11 +1,10 @@
-use csv::Writer;
 use flate2::read::MultiGzDecoder;
 use std::collections::HashMap;
-use std::fs::{read_dir, File};
+use std::env;
+use std::fs::File;
 use std::io::{stdin, BufRead, BufReader, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::time::Instant;
-use std::{env, usize};
 
 fn main() {
     let file = env::args()
