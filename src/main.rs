@@ -28,26 +28,32 @@ fn main() {
         let info = get_info(fasta_read, id.clone());
         write_id.push_str(&info.0);
         write_seq.push_str(&info.1);
+        promts(write_id.clone(), write_seq.clone());
     }
     if option == opt_id2 {
         let fasta_read = read_single_fasta_deco(file.clone());
         let info = get_info(fasta_read, id.clone());
         write_id.push_str(&info.0);
         write_seq.push_str(&info.1);
+        promts(write_id.clone(), write_seq.clone());
     }
     if option == opt_id3 {
         let fasta_read = read_multiple_fasta(file.clone());
         let info = get_info(fasta_read, id.clone());
         write_id.push_str(&info.0);
         write_seq.push_str(&info.1);
+        promts(write_id.clone(), write_seq.clone());
     }
     if option == opt_id4 {
         let fasta_read = read_multiple_fasta_deco(file.clone());
         let info = get_info(fasta_read, id.clone());
         write_id.push_str(&info.0);
         write_seq.push_str(&info.1);
+        promts(write_id.clone(), write_seq.clone());
     }
+}
 
+fn promts(write_id: String, write_seq: String) {
     let mut write_file = String::new();
     println!("\nWould you like to write the output to a file? (Y/N)\n");
     stdin()
