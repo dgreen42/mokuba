@@ -10,6 +10,27 @@ fn main() {
     let file = env::args()
         .nth(1)
         .expect("Please enter a existing file path (arg 1)");
+    if file == "-help" {
+        println!(
+            "
+Mokuba v1.0.0
+
+Description: This takes a fasta file and searches by the id to find the corresponding sequence.
+
+Format: mokuba /path/to/fasta search -flags
+
+Example: mokuba medtr.A17.gnm5.ann1_6.L2RX.cds.fna.gz Chr1g0147651 -md
+
+Flags:
+    -s: For fastas with a single sequence
+    -sd: For fastas with a single sequence that need to be unziped from .gz
+    -m: For fastas with multiple sequences
+    -md: For fastas with multiple sequences that need to be unziped from .gz
+"
+        );
+        std::process::exit(3);
+    }
+
     let id = env::args()
         .nth(2)
         .expect("Please enter an id to search for (arg 2)");
