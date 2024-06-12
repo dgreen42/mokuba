@@ -133,7 +133,28 @@ fn mokuba(
     }
 }
 
-fn thing_to_loop_through_annos(somehtin: String) {}
+fn thing_to_loop_through_annos(somehtin: String) {
+    let path = env::args().nth(1).expect("enter path");
+    let anno = PathBuf::from(path);
+    println!("{:?}", anno.clone());
+    let files = read_dir(anno.clone()).unwrap();
+    for file in files {
+        let anno_dir = read_dir(file.unwrap().path()).unwrap();
+        for annotation in anno_dir {
+            if annotation
+                .as_ref()
+                .unwrap()
+                .path()
+                .into_os_string()
+                .into_string()
+                .unwrap()
+                .contains("cds.fna")
+            {
+                println!("{:?}", annotation);
+            }
+        }
+    }
+}
 
 fn promts(write_id: String, write_seq: String, option: String) {
     if option.contains('f') {
