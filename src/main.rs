@@ -36,61 +36,122 @@ Flags:
         .expect("Please enter an id to search for (arg 2)");
     let option = env::args().nth(3).expect("Please enter an option (arg 3)");
 
+    let mut write_id = String::new();
+    let mut write_seq = String::new();
+
     let opt_id1 = String::from("-s");
     let opt_id2 = String::from("-sd");
     let opt_id3 = String::from("-m");
     let opt_id4 = String::from("-md");
-
-    let mut write_id = String::new();
-    let mut write_seq = String::new();
+    let opt_id5 = String::from("-mf");
+    let opt_id6 = String::from("-mdf");
 
     if option == opt_id1 {
         let fasta_read = read_single_fasta(file.clone());
-        let info = get_info(fasta_read, id.clone());
-        write_id.push_str(&info.0);
-        write_seq.push_str(&info.1);
-        promts(write_id.clone(), write_seq.clone());
+        mokuba(
+            fasta_read,
+            id.clone(),
+            write_id.clone(),
+            write_seq.clone(),
+            option.clone(),
+        )
     }
     if option == opt_id2 {
         let fasta_read = read_single_fasta_deco(file.clone());
-        let info = get_info(fasta_read, id.clone());
-        write_id.push_str(&info.0);
-        write_seq.push_str(&info.1);
-        promts(write_id.clone(), write_seq.clone());
+        mokuba(
+            fasta_read,
+            id.clone(),
+            write_id.clone(),
+            write_seq.clone(),
+            option.clone(),
+        )
     }
     if option == opt_id3 {
         let fasta_read = read_multiple_fasta(file.clone());
-        let info = get_info(fasta_read, id.clone());
-        write_id.push_str(&info.0);
-        write_seq.push_str(&info.1);
-        promts(write_id.clone(), write_seq.clone());
+        mokuba(
+            fasta_read,
+            id.clone(),
+            write_id.clone(),
+            write_seq.clone(),
+            option.clone(),
+        )
     }
     if option == opt_id4 {
         let fasta_read = read_multiple_fasta_deco(file.clone());
-        let info = get_info(fasta_read, id.clone());
-        write_id.push_str(&info.0);
-        write_seq.push_str(&info.1);
-        promts(write_id.clone(), write_seq.clone());
+        mokuba(
+            fasta_read,
+            id.clone(),
+            write_id.clone(),
+            write_seq.clone(),
+            option.clone(),
+        )
+    }
+    if option == opt_id5 {
+        let fasta_read = read_multiple_fasta(file.clone());
+        let input_read = read_multiple_fasta(id.clone());
+
+        for i in input_read.keys() {
+            mokuba(
+                fasta_read.clone(),
+                i.to_string(),
+                write_id.clone(),
+                write_seq.clone(),
+                option.clone(),
+            )
+        }
+    }
+    if option == opt_id6 {
+        let fasta_read = read_multiple_fasta_deco(file.clone());
+        let input_read = read_multiple_fasta(id.clone());
+
+        for i in input_read.keys() {
+            mokuba(
+                fasta_read.clone(),
+                i.to_string(),
+                write_id.clone(),
+                write_seq.clone(),
+                option.clone(),
+            )
+        }
+    }
+}
+fn mokuba(
+    fasta: HashMap<String, String>,
+    id: String,
+    mut wrt_id: String,
+    mut wrt_seq: String,
+    option: String,
+) {
+    let info = get_info(fasta, id.clone());
+    if info.0.is_empty() {
+        println!("No file written because no id was matched");
+    } else {
+        wrt_id.push_str(&info.0);
+        wrt_seq.push_str(&info.1);
+        promts(wrt_id.clone(), wrt_seq.clone(), option);
     }
 }
 
-fn promts(write_id: String, write_seq: String) {
-    let mut write_file = String::new();
-    println!("\nWould you like to write the output to a file? (Y/N)\n");
-    stdin()
-        .read_line(&mut write_file)
-        .expect("Could not read entry");
-    let write_file = write_file.trim();
-    if write_file.to_uppercase() == "Y" {
-        let mut file_name = String::new();
-        println!("\nEnter a name for the file\n");
+fn promts(write_id: String, write_seq: String, option: String) {
+    if option.contains('f') {
+        write_seq_file(
+            &write_id.split(" ").next().unwrap()[1..],
+            write_id.clone(),
+            write_seq,
+        );
+        println!("Wrote {:?}", &write_id);
+    } else {
+        let mut write_file = String::new();
+        println!("\nWould you like to write the output to a file? (Y/N)\n");
         stdin()
-            .read_line(&mut file_name)
+            .read_line(&mut write_file)
             .expect("Could not read entry");
-        let file_name = file_name.trim();
-        write_seq_file(file_name, write_id, write_seq);
+        let write_file = write_file.trim();
+        if write_file.to_uppercase() == "Y" {
+            write_seq_file(&write_id, write_id.clone(), write_seq);
+        }
+        println!("\nDone\n");
     }
-    println!("\nDone\n");
 }
 
 fn write_seq_file(name: &str, id: String, seq: String) {
@@ -122,25 +183,38 @@ fn write_seq_file(name: &str, id: String, seq: String) {
 }
 
 fn get_info(hash: HashMap<String, String>, id: String) -> (String, String) {
-    let found_id = get_id(hash.clone(), id);
-    let retriev_info = hash.get_key_value(&found_id).expect("Could not find id");
-    let seq = retriev_info.1;
-    let validate = retriev_info.0;
-    assert!(&found_id == validate);
-    println!("\nid:\n{:?}\n", found_id);
-    println!("sequence:\n{:?}\n", seq);
-    (found_id, seq.to_string())
-}
-
-fn get_id(hash: HashMap<String, String>, search_id: String) -> String {
     let mut found_id = String::new();
-    let ids = hash.keys();
-    for i in ids {
-        if i.contains(&search_id) {
-            found_id.push_str(&i);
+    let hash_ids = hash.keys();
+    let search_id = &id[1..].split(" ").next().unwrap();
+
+    if id.contains("A17") {
+        let gn = get_id_info(id.clone());
+        for header in hash_ids.clone() {
+            if header.contains(&gn[0]) {
+                found_id.push_str(&header);
+            }
         }
     }
-    found_id
+
+    for header in hash_ids.clone() {
+        if header.contains(search_id) {
+            found_id.push_str(&header);
+        }
+    }
+
+    if found_id.is_empty() {
+        println!("Could not find ID {:?}", &id);
+        let seq = String::new();
+        (found_id, seq)
+    } else {
+        let retriev_info = hash.get_key_value(&found_id).unwrap();
+        let seq = retriev_info.1;
+        let validate = retriev_info.0;
+        assert!(&found_id == validate);
+        println!("\nid:\n{:?}\n", found_id);
+        println!("sequence:\n{:?}\n", seq);
+        (found_id, seq.to_string())
+    }
 }
 
 fn read_single_fasta<P>(filename: P) -> HashMap<String, String>
@@ -241,4 +315,30 @@ where
     let duration = start.elapsed();
     println!("It took {:?} to decode and read", duration);
     fasta
+}
+
+fn get_id_info(header: String) -> Vec<String> {
+    let mut info: String = String::new();
+    let mut id_header: String = String::new();
+    let mut all = Vec::new();
+
+    let sp1 = header.split(" ");
+    for idx in sp1 {
+        let mut hsp = idx.split("=");
+        match hsp.next() {
+            Some("gn") => {
+                info.push_str(hsp.last().unwrap());
+            }
+            Some(_) => {
+                if id_header.is_empty() {
+                    id_header.push_str(&header);
+                }
+            }
+            None => println!("Or this one"),
+        }
+    }
+
+    all.push(info.trim().to_string());
+    all.push(id_header.trim().to_string());
+    all
 }
