@@ -115,6 +115,7 @@ Flags:
         }
     }
 }
+
 fn mokuba(
     fasta: HashMap<String, String>,
     id: String,
@@ -131,6 +132,8 @@ fn mokuba(
         promts(wrt_id.clone(), wrt_seq.clone(), option);
     }
 }
+
+fn thing_to_loop_through_annos(somehtin: String) {}
 
 fn promts(write_id: String, write_seq: String, option: String) {
     if option.contains('f') {
