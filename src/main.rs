@@ -1,9 +1,9 @@
 use flate2::read::MultiGzDecoder;
 use std::collections::HashMap;
 use std::env;
-use std::fs::File;
+use std::fs::{read_dir, File};
 use std::io::{stdin, BufRead, BufReader, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 fn main() {
@@ -36,8 +36,6 @@ Flags:
         .expect("Please enter an id to search for (arg 2)");
     let option = env::args().nth(3).expect("Please enter an option (arg 3)");
 
-    let mut write_id = String::new();
-    let mut write_seq = String::new();
 
     let opt_id1 = String::from("-s");
     let opt_id2 = String::from("-sd");
@@ -51,8 +49,6 @@ Flags:
         mokuba(
             fasta_read,
             id.clone(),
-            write_id.clone(),
-            write_seq.clone(),
             option.clone(),
         )
     }
@@ -61,8 +57,6 @@ Flags:
         mokuba(
             fasta_read,
             id.clone(),
-            write_id.clone(),
-            write_seq.clone(),
             option.clone(),
         )
     }
@@ -71,8 +65,6 @@ Flags:
         mokuba(
             fasta_read,
             id.clone(),
-            write_id.clone(),
-            write_seq.clone(),
             option.clone(),
         )
     }
@@ -81,8 +73,6 @@ Flags:
         mokuba(
             fasta_read,
             id.clone(),
-            write_id.clone(),
-            write_seq.clone(),
             option.clone(),
         )
     }
@@ -94,8 +84,6 @@ Flags:
             mokuba(
                 fasta_read.clone(),
                 i.to_string(),
-                write_id.clone(),
-                write_seq.clone(),
                 option.clone(),
             )
         }
@@ -108,8 +96,6 @@ Flags:
             mokuba(
                 fasta_read.clone(),
                 i.to_string(),
-                write_id.clone(),
-                write_seq.clone(),
                 option.clone(),
             )
         }
@@ -119,27 +105,28 @@ Flags:
 fn mokuba(
     fasta: HashMap<String, String>,
     id: String,
-    mut wrt_id: String,
-    mut wrt_seq: String,
     option: String,
 ) {
+    let mut wrt_id = String::new();
+    let mut wrt_seq = String::new();
+    let write_map: HashMap<String, String> = HashMap::new();
     let info = get_info(fasta, id.clone());
     if info.0.is_empty() {
         println!("No file written because no id was matched");
     } else {
         wrt_id.push_str(&info.0);
         wrt_seq.push_str(&info.1);
-        promts(wrt_id.clone(), wrt_seq.clone(), option);
+        write(wrt_id.clone(), wrt_seq.clone(), option);
     }
 }
 
-fn thing_to_loop_through_annos(somehtin: String) {
-    let path = env::args().nth(1).expect("enter path");
-    let anno = PathBuf::from(path);
+fn multi_read(file: String, id: String, option: String) {
+    let anno = PathBuf::from(file);
+    // changes next line to assert condition
     println!("{:?}", anno.clone());
-    let files = read_dir(anno.clone()).unwrap();
-    for file in files {
-        let anno_dir = read_dir(file.unwrap().path()).unwrap();
+    let dir = read_dir(anno.clone()).unwrap();
+    for d in dir {
+        let anno_dir = read_dir(d.unwrap().path()).unwrap();
         for annotation in anno_dir {
             if annotation
                 .as_ref()
@@ -150,13 +137,23 @@ fn thing_to_loop_through_annos(somehtin: String) {
                 .unwrap()
                 .contains("cds.fna")
             {
-                println!("{:?}", annotation);
+                let anno_path = PathBuf::from(annotation);
+                let fasta_read = read_multiple_fasta_deco(anno_path);
+                let input_read = read_multiple_fasta(id.clone());
+
+                for i in input_read.keys() {
+                    mokuba(
+                        fasta_read.clone(),
+                        i.to_string(),
+                        option.clone(),
+                    )
+                }
             }
         }
     }
 }
 
-fn promts(write_id: String, write_seq: String, option: String) {
+fn write(write_id: String, write_seq: String, option: String) {
     if option.contains('f') {
         write_seq_file(
             &write_id.split(" ").next().unwrap()[1..],
@@ -189,6 +186,7 @@ fn write_seq_file(name: &str, id: String, seq: String) {
     } else {
         File::create(&file_name).expect("Could not create file");
         let mut file_write = File::options().append(true).open(&file_name).unwrap();
+        for cur_id in 
         writeln!(&mut file_write, "{}", id).expect("Could not write ID");
         let mut counter = 0;
         let seq_chars = seq.chars();
