@@ -23,7 +23,7 @@ Example: mokuba md- medtr.A17.gnm5.ann1_6.L2RX.cds.fna.gz Chr1g0147651
 Flags:
     -m: For fastas with multiple sequences
     -md: For fastas with multiple sequences that need to be unziped from .gz
-    -si: Does not save file, instead only gives standard out. Good for piping. Only for .gz files at the moment.
+    -sio: Does not save file, instead only gives standard out. Good for piping. Only for .gz files at the moment.
 "
         );
         std::process::exit(3);
@@ -71,12 +71,26 @@ Flags:
     if option == opt_id3 {
         let fasta_read = read_multiple_fasta_deco(file.clone());
         let id_iter = id.split(",");
-        let id_vec: Vec<String> = id_iter.clone().map(|i| i.to_string()).collect();
-        println!("Getting sequences from ID's");
+        let mut id_vec: Vec<String> = Vec::new();
+        for id in id_iter.clone() {
+            if id.starts_with("#") {
+                continue;
+            } else if id.is_empty() {
+                continue;
+            } else {
+                id_vec.push(id.to_string());
+            }
+        }
         let bar = ProgressBar::new(id_vec.len() as u64);
         for id in id_iter {
             bar.inc(1);
-            get_info(&fasta_read, &id, &option);
+            if id.starts_with("#") {
+                continue;
+            } else if id.is_empty() {
+                continue;
+            } else {
+                get_info(&fasta_read, &id, &option);
+            }
         }
     }
 }
@@ -133,7 +147,7 @@ fn get_info(hash: &HashMap<String, String>, id: &str, option: &str) -> (String, 
     let retriev_info_op = hash.get_key_value(&found_id);
     let retriev_info = match retriev_info_op {
         Some(info) => info,
-        None => (&String::from("NA"), &String::from("NA")),
+        None => (&id.to_string(), &String::from("NA")),
     };
 
     let seq = retriev_info.1;
@@ -141,7 +155,7 @@ fn get_info(hash: &HashMap<String, String>, id: &str, option: &str) -> (String, 
         let mut write_id = String::from(">");
         write_id.push_str(id);
         stdout()
-            .write_all(format!("{}\n{}\n", seq, write_id).as_bytes())
+            .write_all(format!("{}\n{}\n", write_id, seq).as_bytes())
             .unwrap();
         (found_id, seq.to_string())
     } else {
